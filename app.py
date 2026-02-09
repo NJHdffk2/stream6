@@ -42,38 +42,32 @@ for file in paths_to_delete:
     except Exception as e:
         print(f"Skip Delete {file_path}")
 
-# http server
-class MyHandler(http.server.SimpleHTTPRequestHandler):
-
-    def log_message(self, format, *args):
-        pass
-
+class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             self.send_response(200)
+            self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(b'Hello, world')
-        elif self.path == '/sub':
+            self.wfile.write(b'Hello World')
+            
+        elif self.path == f'/{SUB_PATH}':
             try:
-                with open(os.path.join(FILE_PATH, 'sub.txt'), 'rb') as file:
-                    content = file.read()
+                with open(sub_path, 'rb') as f:
+                    content = f.read()
                 self.send_response(200)
-                self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(content)
-            except FileNotFoundError:
-                self.send_response(500)
+            except:
+                self.send_response(404)
                 self.end_headers()
-                self.wfile.write(b'Error reading file')
         else:
             self.send_response(404)
             self.end_headers()
-            self.wfile.write(b'Not found')
 
-httpd = socketserver.TCPServer(('', PORT), MyHandler)
-server_thread = threading.Thread(target=httpd.serve_forever)
-server_thread.daemon = True
-server_thread.start()
+    def log_message(self, format, *args):
+        pass
+    
 
 # Generate xr-ay config file
 def generate_config():
@@ -178,34 +172,33 @@ def generate_links():
     print('App is running')
     print('Thank you for using this script, enjoy!')
          
-# Run the callback
-def start_server():
-    download_files_and_run()
-    generate_links()
-start_server()
 
-# auto visit project page
-has_logged_empty_message = False
+# Main function to start the server
+async def start_server():
+ 
+    cleanup_old_files()
+    create_directory()
 
-def visit_project_page():
-    try:
-        if not PROJECT_URL or not INTERVAL_SECONDS:
-            global has_logged_empty_message
-            if not has_logged_empty_message:
-                print("URL or TIME variable is empty, Skipping visit web")
-                has_logged_empty_message = True
-            return
-
-        response = requests.get(PROJECT_URL)
-        response.raise_for_status() 
-
-        # print(f"Visiting project page: {PROJECT_URL}")
-        print("Page visited successfully")
-        print('\033c', end='')
-    except requests.exceptions.RequestException as error:
-        print(f"Error visiting project page: {error}")
-
-if __name__ == "__main__":
+    await download_files_and_run()
+    
+    server_thread = Thread(target=run_server)
+    server_thread.daemon = True
+    server_thread.start()   
+   
+def run_server():
+    server = HTTPServer(('0.0.0.0', PORT), RequestHandler)
+    print(f"Server is running on port {PORT}")
+    print(f"Running done！")
+    print(f"\nLogs will be delete in 90 seconds")
+    server.serve_forever()
+    
+def run_async():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(start_server()) 
+    
     while True:
-        visit_project_page()
-        time.sleep(INTERVAL_SECONDS)
+        time.sleep(3600)
+        
+if __name__ == "__main__":
+    run_async()
