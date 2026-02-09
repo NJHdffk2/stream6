@@ -13,10 +13,10 @@ import base64
 app = Flask(__name__)
 
 # Set environment variables
-FILE_PATH = os.environ.get('FILE_PATH', './temp')
+FILE_PATH = os.environ.get('FILE_PATH', './.cache')
 PROJECT_URL = os.environ.get('URL', '') # 填写项目分配的url可实现自动访问，例如：https://www.google.com，留空即不启用该功能
 INTERVAL_SECONDS = int(os.environ.get("TIME", 120))                   # 访问间隔时间，默认120s，单位：秒
-UUID = os.environ.get('UUID', 'abe2f2de-13ae-4f1f-bea5-d6c881ca3888')
+UUID = os.environ.get('UUID', '01010101-0101-0101-0101-010101010101')
 NEZHA_SERVER = os.environ.get('NEZHA_SERVER', 'nz.abcd.com')        # 哪吒3个变量不全不运行
 NEZHA_PORT = os.environ.get('NEZHA_PORT', '5555')                  # 哪吒端口为443时开启tls
 NEZHA_KEY = os.environ.get('NEZHA_KEY', '')
@@ -172,11 +172,50 @@ def authorize_files(file_paths):
 
 
 
+# Generate list and sub info
+def generate_links():
+    
+    list_txt = f"""
+vless://{UUID}@{DOMAIN}:{VPORT}?encryption=none&security=tls&sni={DOMAIN}&type=ws&host={DOMAIN}&path=%2Fvless%3Fed%3D2048#{NAME}
+  
+    """
+    
+    with open(os.path.join(FILE_PATH, 'list.txt'), 'w', encoding='utf-8') as list_file:
+        list_file.write(list_txt)
 
+    sub_txt = base64.b64encode(list_txt.encode('utf-8')).decode('utf-8')
+    with open(os.path.join(FILE_PATH, 'sub.txt'), 'w', encoding='utf-8') as sub_file:
+        sub_file.write(sub_txt)
+        
+    try:
+        with open(os.path.join(FILE_PATH, 'sub.txt'), 'rb') as file:
+            sub_content = file.read()
+        print(f"\n{sub_content.decode('utf-8')}")
+    except FileNotFoundError:
+        print(f"sub.txt not found")
+    
+    print(f'{FILE_PATH}/sub.txt saved successfully')
+    time.sleep(20)
+
+    # cleanup files
+    files_to_delete = ['list.txt','config.json']
+    for file_to_delete in files_to_delete:
+        file_path_to_delete = os.path.join(FILE_PATH, file_to_delete)
+        try:
+            os.remove(file_path_to_delete)
+            print(f"{file_path_to_delete} has been deleted")
+        except Exception as e:
+            print(f"Error deleting {file_path_to_delete}: {e}")
+
+    print('\033c', end='')
+    print('App is running')
+    print('Thank you for using this script, enjoy!')
          
 # Run the callback
-download_files_and_run()
-
+def start_server():
+    download_files_and_run()
+    generate_links()
+start_server()
 
 # auto visit project page
 has_logged_empty_message = False
