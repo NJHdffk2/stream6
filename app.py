@@ -1,16 +1,16 @@
 import os
-import shutil
-import subprocess
-import http.server
-import socketserver
-import threading
-import requests
-from flask import Flask
+import re
 import json
 import time
 import base64
-
-app = Flask(__name__)
+import shutil
+import asyncio
+import requests
+import platform
+import subprocess
+import threading
+from threading import Thread
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Set environment variables
 FILE_PATH = os.environ.get('FILE_PATH', './.cache')
