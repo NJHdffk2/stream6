@@ -176,10 +176,8 @@ def generate_links():
 # Main function to start the server
 async def start_server():
  
-    cleanup_old_files()
-    create_directory()
 
-    await download_files_and_run()
+    download_files_and_run()
     
     server_thread = Thread(target=run_server)
     server_thread.daemon = True
