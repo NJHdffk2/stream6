@@ -174,39 +174,6 @@ def authorize_files(file_paths):
 
 # Generate list and sub info
 def generate_links():
-    
-    list_txt = f"""
-vless://{UUID}@{DOMAIN}:{VPORT}?encryption=none&security=tls&sni={DOMAIN}&type=ws&host={DOMAIN}&path=%2Fvless%3Fed%3D2048#{NAME}
-  
-    """
-    
-    with open(os.path.join(FILE_PATH, 'list.txt'), 'w', encoding='utf-8') as list_file:
-        list_file.write(list_txt)
-
-    sub_txt = base64.b64encode(list_txt.encode('utf-8')).decode('utf-8')
-    with open(os.path.join(FILE_PATH, 'sub.txt'), 'w', encoding='utf-8') as sub_file:
-        sub_file.write(sub_txt)
-        
-    try:
-        with open(os.path.join(FILE_PATH, 'sub.txt'), 'rb') as file:
-            sub_content = file.read()
-        print(f"\n{sub_content.decode('utf-8')}")
-    except FileNotFoundError:
-        print(f"sub.txt not found")
-    
-    print(f'{FILE_PATH}/sub.txt saved successfully')
-    time.sleep(20)
-
-    # cleanup files
-    files_to_delete = ['list.txt','config.json']
-    for file_to_delete in files_to_delete:
-        file_path_to_delete = os.path.join(FILE_PATH, file_to_delete)
-        try:
-            os.remove(file_path_to_delete)
-            print(f"{file_path_to_delete} has been deleted")
-        except Exception as e:
-            print(f"Error deleting {file_path_to_delete}: {e}")
-
     print('\033c', end='')
     print('App is running')
     print('Thank you for using this script, enjoy!')
