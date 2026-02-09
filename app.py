@@ -190,13 +190,6 @@ def run_server():
     print(f"\nLogs will be delete in 90 seconds")
     server.serve_forever()
     
-def run_async():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(start_server()) 
-    
-    while True:
-        time.sleep(3600)
         
 if __name__ == "__main__":
-    run_async()
+    start_server()
