@@ -2,6 +2,7 @@ import os
 import re
 import json
 import time
+import base64
 import shutil
 import asyncio
 import requests
@@ -12,13 +13,24 @@ from threading import Thread
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Environment variables
-FILE_PATH = os.environ.get('FILE_PATH', './.cache')
+UPLOAD_URL = os.environ.get('UPLOAD_URL', '')
+PROJECT_URL = os.environ.get('PROJECT_URL', '')        ,
+AUTO_ACCESS = os.environ.get('AUTO_ACCESS', 'false').lower() == 'true'  
+FILE_PATH = os.environ.get('FILE_PATH', './.cache')   
+SUB_PATH = os.environ.get('SUB_PATH', 'sub')           
 UUID = os.environ.get('UUID', '01010101-0101-0101-0101-010101010101')  
-ARGO_DOMAIN = os.environ.get('ARGO_DOMAIN', '123.abc.com')       
-ARGO_AUTH = os.environ.get('ARGO_AUTH', 'eyJhIjoiNWMwNGE0MTY3OTFkOTg2MDY2MjE1Yzc2MTQ2MGZlZDIiLCJ0IjoiNWFlMmY0MzMtZDgwOS00YzlhLWIzNGItMmQ0NjllN2QyNjJhIiwicyI6Ik1tRTNZMlZoTkdJdE56ZGxNeTAwWXpka0xUZzVPV010TnpBMVlXSmtZVEF4TlRFNCJ9')            
+NEZHA_SERVER = os.environ.get('NEZHA_SERVER', '')     
+NEZHA_PORT = os.environ.get('NEZHA_PORT', '')          
+NEZHA_KEY = os.environ.get('NEZHA_KEY', '')           
+ARGO_DOMAIN = os.environ.get('ARGO_DOMAIN', '')       
+ARGO_AUTH = os.environ.get('ARGO_AUTH', '')            
 ARGO_PORT = int(os.environ.get('ARGO_PORT', '8080'))   
+CFIP = os.environ.get('CFIP', 'www.visa.com.tw')       
+CFPORT = int(os.environ.get('CFPORT', '443'))         
+NAME = os.environ.get('NAME', 'streamlit')                   
+CHAT_ID = os.environ.get('CHAT_ID', '')                
+dog_TOKEN = os.environ.get('dog_TOKEN', '')           
 PORT = int(os.environ.get('SERVER_PORT') or os.environ.get('PORT') or 3000) 
-
 
 # Create running folder
 def create_directory():
@@ -28,6 +40,16 @@ def create_directory():
         print(f"{FILE_PATH} is created")
     else:
         print(f"{FILE_PATH} already exists")
+
+# Global variables
+npm_path = os.path.join(FILE_PATH, 'npm')
+php_path = os.path.join(FILE_PATH, 'php')
+cat_path = os.path.join(FILE_PATH, 'cat')
+dog_path = os.path.join(FILE_PATH, 'dog')
+sub_path = os.path.join(FILE_PATH, 'sub.txt')
+list_path = os.path.join(FILE_PATH, 'list.txt')
+boot_log_path = os.path.join(FILE_PATH, 'boot.log')
+config_path = os.path.join(FILE_PATH, 'mouse.json')
 
 
 # Clean up old files
