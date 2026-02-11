@@ -51,10 +51,40 @@ list_path = os.path.join(FILE_PATH, 'list.txt')
 boot_log_path = os.path.join(FILE_PATH, 'boot.log')
 config_path = os.path.join(FILE_PATH, 'mouse.json')
 
+# Delete nodes
+def delete_nodes():
+    try:
+        if not UPLOAD_URL:
+            return
+
+        if not os.path.exists(sub_path):
+            return
+
+        try:
+            with open(sub_path, 'r') as file:
+                file_content = file.read()
+        except:
+            return None
+
+        decoded = base64.b64decode(file_content).decode('utf-8')
+        nodes = [line for line in decoded.split('\n') if any(protocol in line for protocol in ['vless://', 'vmess://', 'trojan://', 'hysteria2://', 'tuic://'])]
+
+        if not nodes:
+            return
+
+        try:
+            requests.post(f"{UPLOAD_URL}/api/delete-nodes", 
+                          data=json.dumps({"nodes": nodes}),
+                          headers={"Content-Type": "application/json"})
+        except:
+            return None
+    except Exception as e:
+        print(f"Error in delete_nodes: {e}")
+        return None
 
 # Clean up old files
 def cleanup_old_files():
-    paths_to_delete = ['cat', 'dog', 'boot.log', 'mouse.json']
+    paths_to_delete = ['cat', 'dog', 'npm', 'php', 'boot.log', 'list.txt']
     for file in paths_to_delete:
         file_path = os.path.join(FILE_PATH, file)
         try:
@@ -65,7 +95,6 @@ def cleanup_old_files():
                     os.remove(file_path)
         except Exception as e:
             print(f"Error removing {file_path}: {e}")
-            
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -74,15 +103,25 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(b'Hello World')
-                
+            
+        elif self.path == f'/{SUB_PATH}':
+            try:
+                with open(sub_path, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(content)
+            except:
+                self.send_response(404)
+                self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
 
     def log_message(self, format, *args):
         pass
-
-
+    
 # Determine system architecture
 def get_system_architecture():
     architecture = platform.machine().lower()
@@ -90,7 +129,6 @@ def get_system_architecture():
         return 'arm'
     else:
         return 'amd'
-
 
 # Download file based on architecture
 def download_file(file_name, file_url):
@@ -111,7 +149,6 @@ def download_file(file_name, file_url):
         print(f"Download {file_name} failed: {e}")
         return False
 
-
 # Get files for architecture
 def get_files_for_architecture(architecture):
     if architecture == 'arm':
@@ -125,8 +162,16 @@ def get_files_for_architecture(architecture):
             {"fileName": "dog", "fileUrl": "https://amd64.ssss.nyc.mn/2go"}
         ]
 
+    if NEZHA_SERVER and NEZHA_KEY:
+        if NEZHA_PORT:
+            npm_url = "https://arm64.ssss.nyc.mn/agent" if architecture == 'arm' else "https://amd64.ssss.nyc.mn/agent"
+            base_files.insert(0, {"fileName": "npm", "fileUrl": npm_url})
+        else:
+            php_url = "https://arm64.ssss.nyc.mn/v1" if architecture == 'arm' else "https://amd64.ssss.nyc.mn/v1"
+            base_files.insert(0, {"fileName": "php", "fileUrl": php_url})
+
     return base_files
-  
+
 # Authorize files with execute permission
 def authorize_files(file_paths):
     for relative_file_path in file_paths:
@@ -137,7 +182,6 @@ def authorize_files(file_paths):
                 print(f"Empowerment success for {absolute_file_path}: 775")
             except Exception as e:
                 print(f"Empowerment failed for {absolute_file_path}: {e}")
-
 
 # Execute shell command and return output
 def exec_cmd(command):
@@ -215,6 +259,7 @@ async def download_files_and_run():
    
 # Main function to start the server
 async def start_server():
+    delete_nodes()
     cleanup_old_files()
     create_directory()
     await download_files_and_run()
