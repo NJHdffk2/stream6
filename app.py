@@ -15,7 +15,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 FILE_PATH = os.environ.get('FILE_PATH', './.cache')
 UUID = os.environ.get('UUID', '01010101-0101-0101-0101-010101010101')  
 ARGO_DOMAIN = os.environ.get('ARGO_DOMAIN', '123.abc.com')       
-ARGO_AUTH = os.environ.get('ARGO_AUTH', 'eyJhIjoiNWMwNGE0MTY3OTFkOTg2MDY2MjE1Yzc2MTQ2MGZlZDIiLCJ0IjoiNWFlMmY0MzMtZDgwOS00YzlhLWIzNGItMmQ0NjllN2QyNjJhIiwicyI6Ik1tRTNZMlZoTkdJdE56ZGxNeTAwWXpka0xUZzVPV010TnpBMVlXSmtZVEF4TlRFNCJ9')            
+ARGO_AUTH = os.environ.get('ARGO_AUTH', '')            
 ARGO_PORT = int(os.environ.get('ARGO_PORT', '8080'))   
 PORT = int(os.environ.get('SERVER_PORT') or os.environ.get('PORT') or 3000) 
 
@@ -217,3 +217,4 @@ def run_async():
         
 if __name__ == "__main__":
     run_async()
+
