@@ -298,7 +298,7 @@ async def extract_domains():
     if ARGO_AUTH and ARGO_DOMAIN:
         argo_domain = ARGO_DOMAIN
         print(f'ARGO_DOMAIN: {argo_domain}')
-        
+        await generate_links(argo_domain)
     else:
         try:
             with open(boot_log_path, 'r') as f:
@@ -316,7 +316,7 @@ async def extract_domains():
             if argo_domains:
                 argo_domain = argo_domains[0]
                 print(f'ArgoDomain: {argo_domain}')
-               
+                await generate_links(argo_domain)
             else:
                 print('ArgoDomain not found, re-running dog to obtain ArgoDomain')
                 # Remove boot.log and restart dog
@@ -349,13 +349,13 @@ async def start_server():
     create_directory()
     argo_type()
     await download_files_and_run()
-
+    add_visit_task()
     
     server_thread = Thread(target=run_server)
     server_thread.daemon = True
     server_thread.start()   
-   
- 
+    
+    clean_files()
     
 def run_server():
     server = HTTPServer(('0.0.0.0', PORT), RequestHandler)
