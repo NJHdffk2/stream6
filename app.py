@@ -7,17 +7,13 @@ import asyncio
 import requests
 import platform
 import subprocess
-import threading
-from threading import Thread
-from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 # Environment variables
 FILE_PATH = os.environ.get('FILE_PATH', './.cache')
 UUID = os.environ.get('UUID', '01010101-0101-0101-0101-010101010101')  
-ARGO_DOMAIN = os.environ.get('ARGO_DOMAIN', '123.abc.com')       
 ARGO_AUTH = os.environ.get('ARGO_AUTH', '')            
 ARGO_PORT = int(os.environ.get('ARGO_PORT', '8080'))   
-PORT = int(os.environ.get('SERVER_PORT') or os.environ.get('PORT') or 3000) 
 
 
 # Create running folder
@@ -44,21 +40,6 @@ def cleanup_old_files():
         except Exception as e:
             print(f"Error removing {file_path}: {e}")
             
-
-class RequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(b'Hello World')
-                
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-    def log_message(self, format, *args):
-        pass
 
 
 # Determine system architecture
@@ -159,7 +140,7 @@ async def download_files_and_run():
     authorize_files(files_to_authorize)
     
     # Generate configuration file
-    config ={"log":{"access":"/dev/null","error":"/dev/null","loglevel":"none",},"inbounds":[{"port":ARGO_PORT ,"protocol":"vless","settings":{"clients":[{"id":UUID ,"flow":"xtls-rprx-vision",},],"decryption":"none","fallbacks":[{"dest":3001 },{"path":"/vless-argo","dest":3002 },{"path":"/vmess-argo","dest":3003 },{"path":"/trojan-argo","dest":3004 },],},"streamSettings":{"network":"tcp",},},{"port":3001 ,"listen":"127.0.0.1","protocol":"vless","settings":{"clients":[{"id":UUID },],"decryption":"none"},"streamSettings":{"network":"ws","security":"none"}},{"port":3002 ,"listen":"127.0.0.1","protocol":"vless","settings":{"clients":[{"id":UUID ,"level":0 }],"decryption":"none"},"streamSettings":{"network":"ws","security":"none","wsSettings":{"path":"/vless-argo"}},"sniffing":{"enabled":False ,"destOverride":["http","tls","quic"],"metadataOnly":False }},{"port":3003 ,"listen":"127.0.0.1","protocol":"vmess","settings":{"clients":[{"id":UUID ,"alterId":0 }]},"streamSettings":{"network":"ws","wsSettings":{"path":"/vmess-argo"}},"sniffing":{"enabled":False ,"destOverride":["http","tls","quic"],"metadataOnly":False }},{"port":3004 ,"listen":"127.0.0.1","protocol":"trojan","settings":{"clients":[{"password":UUID },]},"streamSettings":{"network":"ws","security":"none","wsSettings":{"path":"/trojan-argo"}},"sniffing":{"enabled":False ,"destOverride":["http","tls","quic"],"metadataOnly":False }},],"outbounds":[{"protocol":"freedom","tag": "direct" },{"protocol":"blackhole","tag":"block"}]}
+    config ={"log":{"access":"/dev/null","error":"/dev/null","loglevel":"none",},"inbounds":[{"port":ARGO_PORT ,"listen":"0.0.0.0","protocol":"vless","settings":{"clients":[{"id":UUID }],"decryption":"none"},"streamSettings":{"network":"ws","wsSettings":{"path":"/"}}}],"outbounds":[{"protocol":"freedom","settings": {}}]}
     with open(os.path.join(FILE_PATH, 'mouse.json'), 'w', encoding='utf-8') as config_file:
         json.dump(config, config_file, ensure_ascii=False, indent=2)
     
@@ -196,16 +177,7 @@ async def start_server():
     cleanup_old_files()
     create_directory()
     await download_files_and_run()
-    server_thread = Thread(target=run_server)
-    server_thread.daemon = True
-    server_thread.start()   
-    
-def run_server():
-    server = HTTPServer(('0.0.0.0', PORT), RequestHandler)
-    print(f"Server is running on port {PORT}")
-    print(f"Running done！")
-    print(f"\nLogs will be delete in 90 seconds")
-    server.serve_forever()
+  
     
 def run_async():
     loop = asyncio.new_event_loop()
